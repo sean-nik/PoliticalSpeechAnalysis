@@ -6,6 +6,7 @@ import re
 import numpy as np
 from wordcloud import WordCloud 
 import matplotlib.pyplot as plt
+import networkx as nx
 client = pymongo.MongoClient('localhost',27017)
 #list the databases defined
 client.database_names()
@@ -98,6 +99,9 @@ def tweet_to_tokens_with_stopwords(tweet):
     #filtered_tokens = [w for w in tokens if w not in nltk_stopwords]
     return tokens
 
+####################################################
+# Bigram Analysis
+
 dnc_tokens_by_document = list()
 rnc_tokens_by_document = list()
 for tweet in dnc_doclist:
@@ -108,7 +112,44 @@ for tweet in rnc_doclist:
 
 dnc_finder = BigramCollocationFinder.from_documents(dnc_tokens_by_document)
 dnc_finder.nbest(BigramAssocMeasures.raw_freq, 30) # top 30 DNC bigrams
-#dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq) # bigrams with scores
+dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30] # bigrams with scores
+
+dict(dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30])
 
 rnc_finder = BigramCollocationFinder.from_documents(rnc_tokens_by_document)
 rnc_finder.nbest(BigramAssocMeasures.raw_freq, 30) # top 30 RNC bigrams
+rnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30] # bigrams with scores
+
+# function to create visual representation of bigrams as a network of nodes
+def visualize_bigram(list_of_bigram_tuples, kval):
+    bigram_dict = dict(list_of_bigram_tuples)
+    # Create network plot 
+    G = nx.Graph()
+    
+    # Create connections between nodes
+    for k, v in bigram_dict.items():
+        G.add_edge(k[0], k[1], weight=(v * 10))
+    
+    fig, ax = plt.subplots(figsize=(15, 12))
+    pos = nx.spring_layout(G, k=kval) # k is used to adjust distance between nodes
+    # Plot networks
+    nx.draw_networkx(G, pos,
+                     font_size=18,
+                     width=2,
+                     edge_color='grey',
+                     node_color='purple',
+                     with_labels = False,
+                     ax=ax)
+    
+    # Create offset labels
+    for key, value in pos.items():
+        x, y = value[0]+.05, value[1]+.05
+        ax.text(x, y,
+                s=key,
+                bbox=dict(facecolor='red', alpha=0.25),
+                horizontalalignment='center', fontsize=13)
+        
+    plt.show()
+    
+visualize_bigram(dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], .2) # DNC network
+visualize_bigram(rnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], .2) # RNC network

@@ -61,13 +61,31 @@ for tweet in rnc_doclist:
 
 print(rnc_tokens[:25])
 
+def plot_word_freqs(list_of_tuples, color, title):
+    indices = np.arange(len(list_of_tuples))
+    words = [tup[0] for tup in list_of_tuples]
+    counts = [tup[1] for tup in list_of_tuples]
+    plt.figure(figsize=(8,7))
+    plt.barh(indices, counts, color=color)
+    plt.yticks(indices, words, rotation='horizontal')
+    plt.tight_layout()
+    plt.gca().invert_yaxis()
+    plt.title(title)
+    plt.show()
+
 dnc_msgFD = nltk.FreqDist(dnc_tokens)
 dnc_top_words = dnc_msgFD.most_common(30)
+# horizontal bar chart
+plot_word_freqs(dnc_top_words, 'b', "Top 30 words in @DNCConvention2020")
+# wordcloud
 wc_dnc = WordCloud(background_color="white",width=1000,height=1000, max_words=30,relative_scaling=0,normalize_plurals=False).generate_from_frequencies(dict(dnc_top_words))
 plt.imshow(wc_dnc)
 
 rnc_msgFD = nltk.FreqDist(rnc_tokens)
 rnc_top_words = rnc_msgFD.most_common(30)
+# bar chart
+plot_word_freqs(rnc_top_words, 'r', "Top 30 words in @RNCConvention2020")
+# wordcloud
 wc_rnc = WordCloud(background_color="white",width=1000,height=1000, max_words=30,relative_scaling=0,normalize_plurals=False).generate_from_frequencies(dict(rnc_top_words[1:]))
 plt.imshow(wc_rnc)
 
@@ -90,6 +108,7 @@ for tweet in rnc_doclist:
 
 dnc_finder = BigramCollocationFinder.from_documents(dnc_tokens_by_document)
 dnc_finder.nbest(BigramAssocMeasures.raw_freq, 30) # top 30 DNC bigrams
+#dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq) # bigrams with scores
 
 rnc_finder = BigramCollocationFinder.from_documents(rnc_tokens_by_document)
 rnc_finder.nbest(BigramAssocMeasures.raw_freq, 30) # top 30 RNC bigrams

@@ -1,3 +1,6 @@
+#import os
+#os.chdir("/Users/sean/Desktop/Syracuse University/Semester 2/IST652 Scripting For Data Analysis/project")
+
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
@@ -39,16 +42,31 @@ with open("trump_rnc20.txt", "r") as file:
 
 trump_tokens = tokenize_speech(trump_speech)
 trump_tokens[:500]
-     
+
+def plot_word_freqs(list_of_tuples, color, title):
+    indices = np.arange(len(list_of_tuples))
+    words = [tup[0] for tup in list_of_tuples]
+    counts = [tup[1] for tup in list_of_tuples]
+    plt.figure(figsize=(8,7))
+    plt.barh(indices, counts, color=color)
+    plt.yticks(indices, words, rotation='horizontal')
+    plt.tight_layout()
+    plt.gca().invert_yaxis()
+    plt.title(title)
+    plt.show()
+
+
 
 # Wordclouds
 bidenFD = nltk.FreqDist(biden_tokens)
 biden_top_words = bidenFD.most_common(30)
+plot_word_freqs(biden_top_words, 'b', "Top 30 words in Biden's DNC speech")
 wc_biden = WordCloud(background_color="white",width=1000,height=1000, max_words=30,relative_scaling=0,normalize_plurals=False).generate_from_frequencies(dict(biden_top_words))
 plt.imshow(wc_biden)
 
 trumpFD = nltk.FreqDist(trump_tokens)
 trump_top_words = trumpFD.most_common(30)
+plot_word_freqs(trump_top_words, 'r', "Top 30 words in Trump's RNC speech")
 wc_trump = WordCloud(background_color="white",width=1000,height=1000, max_words=30,relative_scaling=0,normalize_plurals=False).generate_from_frequencies(dict(trump_top_words))
 plt.imshow(wc_trump)
 

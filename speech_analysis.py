@@ -1,5 +1,5 @@
-#import os
-#os.chdir("/Users/sean/Desktop/Syracuse University/Semester 2/IST652 Scripting For Data Analysis/project")
+import os
+os.chdir("/Users/sean/Desktop/Syracuse University/Semester 2/IST652 Scripting For Data Analysis/project")
 
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
@@ -11,6 +11,8 @@ from wordcloud import WordCloud
 from nltk.corpus import stopwords
 stopWords = set(stopwords.words('english'))  
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from nltk.collocations import BigramCollocationFinder
+from nltk.metrics import BigramAssocMeasures
 
 def tokenize_speech(speech):
     transformed_speech = speech.lower() # all lowercase
@@ -43,7 +45,7 @@ with open("trump_rnc20.txt", "r") as file:
 trump_tokens = tokenize_speech(trump_speech)
 trump_tokens[:500]
 
-def plot_word_freqs(list_of_tuples, color, title):
+def plot_word_freqs(list_of_tuples, color, title, xlab = "Frequency"):
     indices = np.arange(len(list_of_tuples))
     words = [tup[0] for tup in list_of_tuples]
     counts = [tup[1] for tup in list_of_tuples]
@@ -53,8 +55,8 @@ def plot_word_freqs(list_of_tuples, color, title):
     plt.tight_layout()
     plt.gca().invert_yaxis()
     plt.title(title)
+    plt.xlabel(xlab)
     plt.show()
-
 
 
 # Wordclouds
@@ -93,3 +95,15 @@ sentiment(biden_speech)
 sentiment(trump_speech)
 
 
+
+###################
+# Bigrams
+dnc_finder = BigramCollocationFinder.from_words(biden_tokens)
+dnc_finder.nbest(BigramAssocMeasures.chi_sq, 30) # top 30 DNC bigrams
+dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30] # bigrams with scores
+plot_word_freqs(dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], 'b', "Top 30 bigrams in Biden's DNC Speech", "Frequency Score")
+
+rnc_finder = BigramCollocationFinder.from_words(trump_tokens)
+rnc_finder.nbest(BigramAssocMeasures.raw_freq, 30) # top 30 RNC bigrams
+rnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30] # bigrams with scores
+plot_word_freqs(rnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], 'r', "Top 30 bigrams in Trump's RNC Speech", "Frequency Score")

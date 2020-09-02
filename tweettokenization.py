@@ -62,7 +62,7 @@ for tweet in rnc_doclist:
 
 print(rnc_tokens[:25])
 
-def plot_word_freqs(list_of_tuples, color, title):
+def plot_word_freqs(list_of_tuples, color, title, xlab = "Frequency"):
     indices = np.arange(len(list_of_tuples))
     words = [tup[0] for tup in list_of_tuples]
     counts = [tup[1] for tup in list_of_tuples]
@@ -72,6 +72,7 @@ def plot_word_freqs(list_of_tuples, color, title):
     plt.tight_layout()
     plt.gca().invert_yaxis()
     plt.title(title)
+    plt.xlabel(xlab)
     plt.show()
 
 dnc_msgFD = nltk.FreqDist(dnc_tokens)
@@ -113,12 +114,15 @@ for tweet in rnc_doclist:
 dnc_finder = BigramCollocationFinder.from_documents(dnc_tokens_by_document)
 dnc_finder.nbest(BigramAssocMeasures.raw_freq, 30) # top 30 DNC bigrams
 dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30] # bigrams with scores
+# horizontal bar chart
+plot_word_freqs(dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], 'b', "Top 30 bigrams in @DNCConvention2020", "Frequency Score")
 
 dict(dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30])
 
 rnc_finder = BigramCollocationFinder.from_documents(rnc_tokens_by_document)
 rnc_finder.nbest(BigramAssocMeasures.raw_freq, 30) # top 30 RNC bigrams
 rnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30] # bigrams with scores
+plot_word_freqs(rnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], 'r', "Top 30 bigrams in @RNCConvention2020", "Frequency Score")
 
 # function to create visual representation of bigrams as a network of nodes
 def visualize_bigram(list_of_bigram_tuples, kval):

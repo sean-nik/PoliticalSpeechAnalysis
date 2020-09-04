@@ -44,20 +44,22 @@ rnc_tokens = list()
 ttokenizer = nltk.tokenize.TweetTokenizer()
 nltk_stopwords = nltk.corpus.stopwords.words('english')
 nltk_stopwords.extend(['rt','https','co','2020'])
-def tweet_to_tokens(tweet):
+def tweet_to_tokens(tweet, extra_stopwords = []):
+    extra_stopwords.extend(nltk_stopwords) # add any additional words to stopwords list
+
     s = tweet.lower()
     # Replace all none alphanumeric characters with spaces
     s = re.sub(r'[^@a-zA-Z0-9\s]', ' ', s)
     tokens = ttokenizer.tokenize(s)
-    filtered_tokens = [w for w in tokens if w not in nltk_stopwords]
+    filtered_tokens = [w for w in tokens if w not in extra_stopwords]
     return filtered_tokens
 
 for tweet in dnc_doclist:
-    for token in tweet_to_tokens(tweet):
+    for token in tweet_to_tokens(tweet, ["dnc", "dncconvention"]):
         dnc_tokens.append(token)
 
 for tweet in rnc_doclist:
-    for token in tweet_to_tokens(tweet):
+    for token in tweet_to_tokens(tweet, ["rnc", "rncconvention"]):
         rnc_tokens.append(token)
 
 print(rnc_tokens[:25])
@@ -92,24 +94,16 @@ wc_rnc = WordCloud(background_color="white",width=1000,height=1000, max_words=30
 plt.imshow(wc_rnc)
 
 
-def tweet_to_tokens_with_stopwords(tweet):
-    s = tweet.lower()
-    # Replace all none alphanumeric characters with spaces
-    s = re.sub(r'[^@a-zA-Z0-9\s]', ' ', s)
-    tokens = ttokenizer.tokenize(s)
-    #filtered_tokens = [w for w in tokens if w not in nltk_stopwords]
-    return tokens
-
 ####################################################
 # Bigram Analysis
 
 dnc_tokens_by_document = list()
 rnc_tokens_by_document = list()
 for tweet in dnc_doclist:
-    dnc_tokens_by_document.append(tweet_to_tokens(tweet))
+    dnc_tokens_by_document.append(tweet_to_tokens(tweet, ["dnc", "dncconvention"]))
 
 for tweet in rnc_doclist:
-    rnc_tokens_by_document.append(tweet_to_tokens(tweet))
+    rnc_tokens_by_document.append(tweet_to_tokens(tweet, ["rnc", "rncconvention"]))
 
 dnc_finder = BigramCollocationFinder.from_documents(dnc_tokens_by_document)
 dnc_finder.nbest(BigramAssocMeasures.raw_freq, 30) # top 30 DNC bigrams
@@ -132,14 +126,18 @@ def visualize_bigram(list_of_bigram_tuples, kval):
     
     # Create connections between nodes
     for k, v in bigram_dict.items():
-        G.add_edge(k[0], k[1], weight=(v * 10))
+        print(v)
+        G.add_edge(k[0], k[1], weight=(v * 1000))
+        
+    edges = G.edges()
+    weights = [G[u][v]['weight'] for u,v in edges]
     
     fig, ax = plt.subplots(figsize=(15, 12))
     pos = nx.spring_layout(G, k=kval) # k is used to adjust distance between nodes
     # Plot networks
     nx.draw_networkx(G, pos,
                      font_size=18,
-                     width=2,
+                     width=weights,
                      edge_color='grey',
                      node_color='purple',
                      with_labels = False,
@@ -154,6 +152,7 @@ def visualize_bigram(list_of_bigram_tuples, kval):
                 horizontalalignment='center', fontsize=13)
         
     plt.show()
-    
-visualize_bigram(dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], .2) # DNC network
-visualize_bigram(rnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], .2) # RNC network
+
+# Bigram network visualizations
+visualize_bigram(dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], 0.8) # DNC network
+visualize_bigram(rnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], 0.8) # RNC network

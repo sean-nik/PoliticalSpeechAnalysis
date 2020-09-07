@@ -31,7 +31,7 @@ len(dnc_doclist)
 
 # make sure all tweets are unique
 rnc_array = np.array(rnc_doclist)
-len(np.unique(rnc_array))
+len(np.unique(rnc_array)) # should expect 500
 dnc_array = np.array(dnc_doclist)
 len(np.unique(dnc_array))
 
@@ -80,7 +80,7 @@ def plot_word_freqs(list_of_tuples, color, title, xlab = "Frequency"):
 dnc_msgFD = nltk.FreqDist(dnc_tokens)
 dnc_top_words = dnc_msgFD.most_common(30)
 # horizontal bar chart
-plot_word_freqs(dnc_top_words, 'b', "Top 30 words in @DNCConvention2020")
+plot_word_freqs(dnc_top_words, 'b', "Top 30 words in #DNCConvention2020")
 # wordcloud
 wc_dnc = WordCloud(background_color="white",width=1000,height=1000, max_words=30,relative_scaling=0,normalize_plurals=False).generate_from_frequencies(dict(dnc_top_words))
 plt.imshow(wc_dnc)
@@ -88,11 +88,23 @@ plt.imshow(wc_dnc)
 rnc_msgFD = nltk.FreqDist(rnc_tokens)
 rnc_top_words = rnc_msgFD.most_common(30)
 # bar chart
-plot_word_freqs(rnc_top_words, 'r', "Top 30 words in @RNCConvention2020")
+plot_word_freqs(rnc_top_words, 'r', "Top 30 words in #RNCConvention2020")
 # wordcloud
 wc_rnc = WordCloud(background_color="white",width=1000,height=1000, max_words=30,relative_scaling=0,normalize_plurals=False).generate_from_frequencies(dict(rnc_top_words[1:]))
 plt.imshow(wc_rnc)
 
+# explore tweets for contextual meaning due to certain high word frequencies
+ratings_tweets = [s for s in dnc_doclist if "ratings" in s]
+print(ratings_tweets)
+gender_tweets = [s for s in dnc_doclist if "gender" in s]
+print(gender_tweets)
+
+equal_tweets = [s for s in rnc_doclist if "equal" in s]
+print(equal_tweets)
+firework_tweets = [s for s in rnc_doclist if "fireworks" in s]
+print(firework_tweets)
+biden_tweets = [s for s in rnc_doclist if "@JoeBiden" in s]
+print(biden_tweets)
 
 ####################################################
 # Bigram Analysis
@@ -111,7 +123,6 @@ dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30] # bigrams with scores
 # horizontal bar chart
 plot_word_freqs(dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], 'b', "Top 30 bigrams in @DNCConvention2020", "Frequency Score")
 
-dict(dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30])
 
 rnc_finder = BigramCollocationFinder.from_documents(rnc_tokens_by_document)
 rnc_finder.nbest(BigramAssocMeasures.raw_freq, 30) # top 30 RNC bigrams
@@ -119,7 +130,7 @@ rnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30] # bigrams with scores
 plot_word_freqs(rnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], 'r', "Top 30 bigrams in @RNCConvention2020", "Frequency Score")
 
 # function to create visual representation of bigrams as a network of nodes
-def visualize_bigram(list_of_bigram_tuples, kval):
+def visualize_bigram(list_of_bigram_tuples, kval, title):
     bigram_dict = dict(list_of_bigram_tuples)
     # Create network plot 
     G = nx.Graph()
@@ -150,9 +161,9 @@ def visualize_bigram(list_of_bigram_tuples, kval):
                 s=key,
                 bbox=dict(facecolor='red', alpha=0.25),
                 horizontalalignment='center', fontsize=13)
-        
+    plt.title(title)   
     plt.show()
 
 # Bigram network visualizations
-visualize_bigram(dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], 0.8) # DNC network
-visualize_bigram(rnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], 0.8) # RNC network
+visualize_bigram(dnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], 0.8, "#DNCConvention2020 Top 30 Bigrams") # DNC network
+visualize_bigram(rnc_finder.score_ngrams(BigramAssocMeasures.raw_freq)[:30], 0.8, "#RNCConvention2020 Top 30 Bigrams") # RNC network
